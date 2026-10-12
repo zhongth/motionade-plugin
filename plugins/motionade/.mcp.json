@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "motion-studio": {
+      "type": "http",
+      "url": "https://studio.motionade.app/api/mcp",
+      "headers": {
+        "X-Motionade-Plugin-Version": "0.1.0",
+        "X-Motionade-Agent-Host": "Claude Code"
+      },
+      "http_headers": {
+        "X-Motionade-Plugin-Version": "0.1.0",
+        "X-Motionade-Agent-Host": "Codex"
+      }
+    }
+  }
+}

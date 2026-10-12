@@ -1,0 +1,14 @@
+{
+  "name": "motionade",
+  "description": "The Motionade plugin for AI coding agents: create and refine editable motion films.",
+  "owner": {
+    "name": "Motionade"
+  },
+  "plugins": [
+    {
+      "name": "motionade",
+      "source": "./plugins/motionade",
+      "description": "Construct editable Motionade films through composition, object relationships, choreography, and temporal design."
+    }
+  ]
+}

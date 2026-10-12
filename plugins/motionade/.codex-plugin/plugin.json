@@ -1,0 +1,23 @@
+{
+  "name": "motionade",
+  "version": "0.1.0",
+  "description": "Construct editable Motionade films through composition, object relationships, choreography, and temporal design.",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Motionade Motion Design",
+    "shortDescription": "Design and revise editable motion films.",
+    "category": "Productivity",
+    "capabilities": [
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Create an editable motion film in Motionade."
+    ],
+    "developerName": "Motionade",
+    "longDescription": "Experimental agent guidance for editable motion films: motion composition, choreography, temporal design, and native Motionade authoring around a shared design core."
+  },
+  "author": {
+    "name": "Motionade"
+  },
+  "license": "LicenseRef-Motionade-Plugin-1.0"
+}

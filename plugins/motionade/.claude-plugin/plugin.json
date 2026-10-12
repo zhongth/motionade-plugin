@@ -1,0 +1,9 @@
+{
+  "name": "motionade",
+  "version": "0.1.0",
+  "description": "Construct editable Motionade films through composition, object relationships, choreography, and temporal design.",
+  "author": {
+    "name": "Motionade"
+  },
+  "license": "LicenseRef-Motionade-Plugin-1.0"
+}

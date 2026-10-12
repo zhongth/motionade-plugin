@@ -1,0 +1,175 @@
+Motionade Plugin License
+Version 1.0 — October 4, 2026
+License identifier: LicenseRef-Motionade-Plugin-1.0
+
+Copyright (c) 2026 Pixed Studio LLC. All rights reserved.
+
+1. Parties and scope
+
+This license is offered by Pixed Studio LLC, a Wyoming limited liability company
+("Pixed Studio", "we", or "us"), for its Motionade plugin. "You" means the person
+or legal entity exercising the permissions below. If you act for an entity, you
+must have authority to accept this license for it.
+
+"Materials" means the plugin skills, prompts, reference documents, examples,
+scripts, configuration, and accompanying documentation that we distribute with
+this license, including our portions of modifications to those materials.
+Separately identified third-party components remain under their own licenses.
+This license does not cover the source code of Motionade Studio or its hosted
+services, or your Content as defined in section 5.
+
+The Materials are proprietary and made available for the purposes below. This
+is not an open-source license. By exercising permissions granted by this license
+after receiving it, you accept its terms. If you do not accept, you may not
+exercise those permissions. Rights you have independently under applicable law
+or another valid license are unaffected.
+
+2. Permission to use and customize
+
+Subject to this license, we grant you a worldwide, non-exclusive, royalty-free
+license under our rights in the Materials to download, install, inspect, copy,
+execute, and modify them solely to create, view, edit, manage, or export Motionade
+projects, or to develop, test, and support workflows and integrations that work
+with Motionade (the "Permitted Purpose"). Offline preparation of Motionade
+projects and import or export workflows with other tools are included.
+
+You may use the Materials for personal, internal business, and commercial client
+work. You may keep backups and privately share original or modified copies with
+your employees and contractors working on your behalf for the Permitted Purpose,
+provided they receive this license and follow it. You are responsible for their
+use on your behalf. You need not publish your modifications.
+
+You may let local or hosted AI agents and service providers load, process, and
+cache the Materials as needed to carry out the Permitted Purpose on your behalf.
+This permission includes supplying the Materials as model input during an agent
+session. It does not grant a separate right to use the Materials as a training
+dataset, to train or fine-tune model weights, or to develop a substitute for the
+Materials. Ordinary inference, context windows, and inference caching are allowed.
+
+3. Distribution and notices
+
+You may redistribute unmodified official releases through plugin marketplaces,
+package registries, installation tools, or mirrors to facilitate the Permitted
+Purpose. Keep this license and all copyright and attribution notices with each
+copy, identify the original source and version, and make the license available
+before installation. Do not charge separately for the Materials or represent
+your distribution as endorsed by us. A host may charge for its own independent
+agent, hosting, or marketplace services. Recipients receive permission directly
+from Pixed Studio under this license; you may not grant them broader rights.
+
+You may use a repository host's ordinary viewing and forking features. Public
+distribution of modified Materials requires our prior written permission.
+
+Keep this license and our notices in your private copies and modifications too.
+You may use the Motionade name accurately to identify the original plugin or
+describe compatibility. No broader trademark or endorsement right is granted.
+
+4. Limits
+
+Except as expressly permitted above or required by applicable law, you may not:
+
+(a) sell, sublicense, rebrand, or offer the Materials or modifications as a
+    standalone skill pack, plugin, library, service, or other product;
+(b) copy or adapt the Materials to power a workflow for a different creation
+    product outside the Permitted Purpose, including by replacing the Motionade
+    connection while retaining our skills, prompts, or reference content;
+(c) distribute modified Materials publicly without our written permission; or
+(d) remove or misrepresent ownership, attribution, or license notices.
+
+These limits concern reuse of the Materials. They do not restrict independently
+developed products, general knowledge or ideas, lawful interoperability, or your
+use of other creation tools. Independently written integrations may be offered
+commercially; any included Materials must comply with this license. Permission
+to redistribute our modified Materials must be obtained separately.
+
+5. Your projects and outputs
+
+"Content" means the inputs you supply and the projects, media, animations, video
+exports, and other creative outputs you create using Motionade or the plugin.
+Content does not include copies of the Materials themselves, such as a reproduced
+skill document or a repackaged prompt library. Ordinary generated project data,
+code, and creative outputs do not become Materials merely because the plugin
+guided their creation.
+
+We claim no ownership of your Content under this license. This license imposes
+no royalty, attribution, disclosure, or Motionade-only usage requirement on your
+Content. You may edit, export, publish, distribute, sell, and deliver it to clients,
+and use it with other tools. Your existing rights remain yours; this license
+does not establish copyright in an output or grant rights in third-party assets.
+You remain responsible for permissions needed for your inputs and outputs.
+
+You retain any rights you hold in your original contributions to modifications;
+our underlying Materials remain subject to this license. No rights in your
+Content or modifications are assigned to us by this license.
+
+6. Hosted services and third parties
+
+This license grants rights in the distributed Materials only. It does not grant
+an account, API credentials, service availability, unlimited usage, support,
+updates, or free access to hosted Motionade features. Any service agreement you
+separately accept governs that service, including its fees and access conditions.
+This license does not replace a privacy notice or authorize us to collect data.
+Third-party hosts and AI providers have their own terms.
+
+7. Duration and termination
+
+This license continues for the copy you received unless terminated under this
+section. You may terminate it by stopping use and deleting your copies. We may
+terminate it by written notice if you materially breach it and do not remedy the
+breach within 30 days after receiving written notice describing the breach.
+
+On termination, stop using and distributing the Materials and delete copies you
+control, including modifications containing them. Copies kept solely in routine
+backups or for legal recordkeeping may remain until ordinarily deleted, but may
+not be used. Termination does not require deletion of your Content or affect its
+continued use, or terminate compliant recipients' independently granted licenses.
+Sections 4 through 6 and 8 through 11 survive as relevant to retained rights,
+copies, and claims. Remedies for a breach remain available under applicable law.
+
+8. Warranties and liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE MATERIALS ARE PROVIDED "AS IS" AND
+"AS AVAILABLE", WITHOUT EXPRESS, IMPLIED, OR STATUTORY WARRANTIES, INCLUDING
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT.
+WE DO NOT WARRANT ACCURACY, COMPATIBILITY, UNINTERRUPTED OPERATION, OR ANY RESULT.
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, PIXED STUDIO IS NOT LIABLE FOR INDIRECT,
+INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR LOSS OF
+PROFITS, REVENUE, GOODWILL, OR DATA, ARISING FROM THE MATERIALS OR THIS LICENSE,
+EVEN IF ADVISED OF THE POSSIBILITY. OUR TOTAL AGGREGATE LIABILITY ARISING FROM
+THE MATERIALS OR THIS LICENSE WILL NOT EXCEED THE GREATER OF US$100 AND AMOUNTS
+YOU PAID US SPECIFICALLY FOR THE MATERIALS IN THE 12 MONTHS BEFORE THE EVENT
+GIVING RISE TO THE CLAIM. THIS LIMIT DOES NOT GOVERN SEPARATELY PROVIDED SERVICES.
+
+Nothing in this license excludes or limits liability for fraud, willful
+misconduct, gross negligence, or any liability or remedy that applicable law
+does not permit to be excluded or limited. Mandatory consumer rights remain.
+
+9. Applicable law and disputes
+
+This license is governed by Wyoming law and applicable United States federal
+law, excluding conflict-of-laws rules. Subject to mandatory applicable law,
+disputes arising from this license are subject to the exclusive jurisdiction of
+the state courts in Wyoming or, where federal subject-matter jurisdiction exists,
+the United States District Court for the District of Wyoming. Each party consents
+to personal jurisdiction in those courts. Consumers retain any mandatory rights
+to protections under the law of their residence and to bring or defend claims in
+their local courts. This license imposes no arbitration or class-action waiver.
+
+10. Versions and other rights
+
+This version applies only to Materials supplied with it. We may offer future
+releases under different terms; those terms do not retroactively change this
+license for copies already received.
+
+All rights not expressly granted are reserved. If a provision is unenforceable,
+the rest remains effective to the extent allowed by law. Failure to enforce a
+provision is not a waiver. This license is the complete agreement concerning
+the Materials, except for a separate written agreement with Pixed Studio that
+expressly overrides it. This license may not be assigned or sublicensed without
+our written consent; the distribution and on-behalf-of permissions above remain.
+
+11. Contact
+
+For licensing questions, permission requests, or notices, contact Pixed Studio
+LLC at feedback@motionade.app, with "Plugin license" in the subject line.

@@ -1,0 +1,372 @@
+#!/usr/bin/env node
+// motionade: the Motionade plugin's mechanics. It moves files over the links
+// the Motionade tools hand out and compares images. It authors nothing and
+// holds no sign-in: every link it uses carries its own short-lived access, and
+// every step can also be done by hand with shasum, curl and ffmpeg.
+"use strict";
+
+const { spawnSync } = require("node:child_process");
+const { createHash } = require("node:crypto");
+const fs = require("node:fs");
+const path = require("node:path");
+const { fileURLToPath, pathToFileURL } = require("node:url");
+const zlib = require("node:zlib");
+
+const USAGE = `Usage:
+  motionade send <ops.json>
+      Print the path, size and sha256 to ask createOperationsUpload for a ticket with.
+  motionade send <ops.json> --to <upload.url>
+      Upload the batch to the ticket's link, then pass the ticket's ref as operationsRef.
+  motionade fetch <link> [--out <file>]
+      Save a download link (a render, a project snapshot) into a file; gzip JSON is unpacked.
+      Without --out, the file goes in the current folder under the link's own name.
+  motionade compare <frame> <reference> [--out <dir>]
+      Compare a rendered frame with a reference image through ffmpeg: SSIM, PSNR, the share
+      of changed pixels, a side-by-side image and a difference image.
+  motionade export <link> --out <new file>.mp4 [--browser chrome|edge|chromium|<path>] [--timeout <seconds>] [--play] [--headed]
+      Render the film at a createExportLink link on this machine, in Chrome or Edge, headless,
+      save the MP4 (never over an existing file) and print its receipt as JSON. --play also
+      plays the file to its end at normal speed. --browser picks Chrome, Edge or Playwright's
+      Chromium (by default Chrome, then Edge); a <path> must be Chrome's or Edge's own, where it
+      installs: --browser names a browser, never a program. Needs playwright-core 1.60 or later.
+
+Exit codes: 0 done; 1 usage; 2 failed, the message says why; 3 ffmpeg missing;
+4 the link no longer works (expired, used, or its file cleared): ask the tool for a new one;
+5 the link cannot be reached (no network, DNS, TLS): check this machine's network access;
+6 storage is busy or failing: wait a minute and run again.
+export also exits 14 Chrome or Edge could not start (not installed, or blocked by a shell sandbox); 15 no playwright-core 1.60 or later; 17 the link was
+refused (the project changed or is gone, a Scene is missing, the project carries flags);
+18 the project or browser blocks the export; 19 the file was saved but a receipt check
+failed; 20 timed out; 21 the link is not https or local; 22 the link's server did not serve
+the export page; 23 the browser crashed; 24 the file did not download; 25 a file appeared
+at --out meanwhile, and the film is kept beside it.`;
+
+/** Options that take no value. */
+const FLAGS = new Set(["--play", "--headed"]);
+
+class Failure extends Error {
+  constructor(message, code = 2) {
+    super(message);
+    this.code = code;
+  }
+}
+
+/**
+ * `--name value` or `--name=value` options after the positional arguments. An
+ * option without its value is a usage error, and no message echoes a value.
+ */
+function parse(args) {
+  const positional = [];
+  const options = {};
+  for (let index = 0; index < args.length; index += 1) {
+    if (!args[index].startsWith("--")) {
+      positional.push(args[index]);
+      continue;
+    }
+    if (FLAGS.has(args[index])) {
+      options[args[index].slice(2)] = true;
+      continue;
+    }
+    const equals = args[index].indexOf("=");
+    const name = equals < 0 ? args[index] : args[index].slice(0, equals);
+    const value = equals < 0 ? args[(index += 1)] : args[index].slice(equals + 1);
+    if (!value || (equals < 0 && value.startsWith("--"))) throw new Failure(`${name} needs a value.\n\n${USAGE}`, 1);
+    options[name.slice(2)] = value;
+  }
+  return { positional, options };
+}
+
+/** True for an argument that holds a link: `https://…`, `<file://…>`, or `https:host/…` without its slashes. */
+const isLink = (argument) => /^<?(?:https?|file):|:\/\//i.test(argument);
+
+/** A file argument. A link there is a usage error, with `advice` on where it goes. */
+function fileOf(argument, advice) {
+  if (argument !== undefined && isLink(argument)) throw new Failure(`${argument} is a link, not a file. ${advice}`, 1);
+  return argument;
+}
+
+/** The first `count` positional arguments; any more is a usage error that never echoes them. */
+function only(command, positional, count) {
+  if (positional.length <= count) return positional;
+  const link = command === "send" && positional.slice(count).some(isLink);
+  const hint = link ? " To upload, pass the ticket's link after --to: motionade send <ops.json> --to <upload.url>." : "";
+  throw new Failure(`motionade ${command} takes ${count} argument${count === 1 ? "" : "s"}, not ${positional.length}.${hint}\n\n${USAGE}`, 1);
+}
+
+/** The long query values of the links given: a signed link's token, masked even where it appears outside its link. */
+const secrets = [];
+
+/** Every URL's query and fragment. */
+const URL_TAIL = /\b((?:https?|file):\/\/[^\s?#'"<>]*)[?#][^\s'"<>]*/gi;
+
+/**
+ * The value of a credential-like query parameter, whatever shape the link is in: Supabase
+ * Storage's `token`, and the signatures of other storage providers.
+ */
+const CREDENTIAL = /\b(access_token|token|sig|signature|x-amz-[\w-]+|x-goog-[\w-]+)=[^&\s'"<>#]*/gi;
+
+/** The export page's link carries its ticket in the path: `https://…/export/<ticket>`. */
+const EXPORT_TICKET = /(\bhttps?:\/*[^\s/'"<>]+\/export\/)[^\s/?#'"<>]+/gi;
+
+/** Everything the command prints passes through here, so no link's query or token ever reaches the output. */
+function redact(text) {
+  const masked = text.replace(URL_TAIL, "$1").replace(CREDENTIAL, "$1=<token>").replace(EXPORT_TICKET, "$1<ticket>");
+  return secrets.reduce((message, secret) => message.split(secret).join("<token>"), masked);
+}
+const say = (stream, text) => stream.write(`${redact(text)}\n`);
+
+/** A link a tool handed out. It is parsed here, so that no message ever echoes one that is malformed. */
+function linkOf(text, what) {
+  let url;
+  try {
+    url = new URL(text);
+  } catch {
+    url = undefined;
+  }
+  if (url === undefined || !["https:", "http:", "file:"].includes(url.protocol)) {
+    throw new Failure(`${what} is not a link. Pass the url exactly as the tool answered it, without brackets or quotes.`, 1);
+  }
+  // Short values such as download=1 carry no access, and hiding them would garble every message.
+  secrets.push(...[url.search.slice(1), ...url.searchParams.values()].filter((value) => value.length >= 16));
+  return url;
+}
+
+const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
+const print = (value) => say(process.stdout, JSON.stringify(value));
+
+/** The batch file's bytes, once they are a JSON array of objects: what `operations` takes. */
+function readBatch(file) {
+  fileOf(file, "send takes the batch file first and the ticket's link after --to: motionade send <ops.json> --to <upload.url>.");
+  let bytes;
+  try {
+    bytes = fs.readFileSync(file);
+  } catch (error) {
+    if (error.code === "ENOENT") throw new Failure(`${file} not found: pass the file you wrote the operations array to.`);
+    throw error;
+  }
+  let batch;
+  try {
+    batch = JSON.parse(bytes.toString("utf8"));
+  } catch (error) {
+    throw new Failure(`${file} is not JSON (${error.message}).`);
+  }
+  if (!Array.isArray(batch)) {
+    throw new Failure(`${file} is not a JSON array of operations: upload the array you would pass as operations.`);
+  }
+  const index = batch.findIndex((operation) => operation === null || typeof operation !== "object" || Array.isArray(operation));
+  if (index >= 0) throw new Failure(`Operation ${index} of ${file} is not an object.`);
+  return bytes;
+}
+
+/** `fetch`; a link that cannot be reached is exit 5, named by its cause and host, never its query. */
+async function request(url, init, instead) {
+  try {
+    return await fetch(url, init);
+  } catch (error) {
+    const cause = error.cause?.code ?? error.cause?.message ?? error.message;
+    throw new Failure(
+      `Could not reach ${url.host} (${cause}). Check this machine's network access; in Codex, allow network access for this command. Or ${instead}`,
+      5,
+    );
+  }
+}
+
+/**
+ * A link's refusal, by what to do next. Supabase Storage answers 400 with the
+ * real status in its body: {"statusCode":"403","message":"jwt expired"}.
+ */
+async function refusal(response, what, advice) {
+  const body = await response.text().catch(() => "");
+  let status = response.status;
+  if (status === 400) {
+    try {
+      status = Number(JSON.parse(body).statusCode) || 400;
+    } catch {
+      // A plain-text answer keeps the 400.
+    }
+  }
+  const answer = `${what} ${response.status} ${response.statusText}${body ? `: ${body.slice(0, 500)}` : ""}.`;
+  if ([400, 401, 403, 404, 409, 410].includes(status)) return new Failure(`${answer} The link has expired or was used. ${advice}`, 4);
+  if (status === 413) return new Failure(`${answer} The file is too large for one upload: split the batch into smaller ones, each with its own ticket.`);
+  if (status === 429 || status >= 500) return new Failure(`${answer} Storage is busy or failing: wait a minute and run again.`, 6);
+  return new Failure(answer);
+}
+
+/** Reads or writes a `file://` link's file; a missing file or folder is a link that no longer works. */
+function onLinkedFile(url, use, advice) {
+  const file = fileURLToPath(url);
+  try {
+    return use(file);
+  } catch (error) {
+    if (error.code === "ENOENT") throw new Failure(`${file} is gone: File Mode clears these files after an hour. ${advice}`, 4);
+    throw error;
+  }
+}
+
+async function send(file, to) {
+  if (file === undefined) throw new Failure(USAGE, 1);
+  const bytes = readBatch(file);
+  if (to === undefined) {
+    print({ path: path.resolve(file), size: bytes.length, sha256: sha256(bytes) });
+    say(process.stderr, "Call createOperationsUpload with these, then run its curl, or: motionade send <file> --to <upload.url>");
+    return;
+  }
+  const url = linkOf(to, "The upload link");
+  const advice = "Ask createOperationsUpload for a new ticket.";
+  if (url.protocol === "file:") {
+    // The bytes checked and hashed above, written fresh: the server dates a batch by its file's time.
+    onLinkedFile(url, (target) => fs.writeFileSync(target, bytes), advice);
+  } else {
+    const init = { method: "PUT", headers: { "content-type": "application/json" }, body: bytes };
+    const response = await request(url, init, "run the ticket's curl line instead.");
+    if (!response.ok) throw await refusal(response, "The upload was refused:", advice);
+  }
+  print({ uploaded: true, size: bytes.length, sha256: sha256(bytes) });
+}
+
+async function fetchLink(link, out) {
+  if (link === undefined) throw new Failure(USAGE, 1);
+  const url = linkOf(link, "The link");
+  fileOf(out, "--out takes the file to save into.");
+  const advice = "Ask the tool for a new link.";
+  let bytes;
+  if (url.protocol === "file:") {
+    bytes = onLinkedFile(url, (source) => fs.readFileSync(source), advice);
+  } else {
+    const response = await request(url, undefined, "run the answer's save line instead.");
+    if (!response.ok) throw await refusal(response, "The link answered", advice);
+    bytes = Buffer.from(await response.arrayBuffer());
+  }
+  // The link's own name says what the file holds. Undecoded and reduced to a safe set, it stays in this folder.
+  let name = path.posix.basename(url.pathname).replace(/[^A-Za-z0-9._-]/g, "_").replace(/^\.+/, "") || "download";
+  if (name.endsWith(".json.gz")) {
+    bytes = zlib.gunzipSync(bytes);
+    name = name.slice(0, -".gz".length);
+  }
+  const target = path.resolve(out ?? name);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, bytes);
+  print({ saved: target, bytes: bytes.length, sha256: sha256(bytes) });
+}
+
+/** Runs ffmpeg or ffprobe; a missing one is exit code 3. */
+function run(tool, args) {
+  const result = spawnSync(tool, args, { maxBuffer: 1 << 30 });
+  if (result.error && result.error.code === "ENOENT") {
+    throw new Failure(
+      `compare needs ${tool}, which is not on this machine's PATH. Install ffmpeg (macOS: brew install ffmpeg; Debian or Ubuntu: apt install ffmpeg; Windows: winget install ffmpeg) and run again, or compare the images by eye.`,
+      3,
+    );
+  }
+  if (result.status !== 0) throw new Failure(`${tool} failed: ${String(result.stderr).trim().split("\n").slice(-3).join(" ")}`);
+  return result;
+}
+
+function compare(frame, reference, out = ".") {
+  if (frame === undefined || reference === undefined) throw new Failure(USAGE, 1);
+  const advice = "compare takes image files: save a link first with motionade fetch.";
+  for (const argument of [frame, reference, out]) fileOf(argument, advice);
+  run("ffmpeg", ["-version"]);
+  const [width, height] = String(run("ffprobe", ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0", frame]).stdout)
+    .trim().split(",").map(Number);
+  // The reference is scaled to the frame's size; both are compared as RGB.
+  const inputs = ["-v", "error", "-i", frame, "-i", reference];
+  const pair = `[1:v]scale=${width}:${height}:flags=bicubic,format=rgb24[r];[0:v]format=rgb24[f]`;
+  fs.mkdirSync(out, { recursive: true });
+  const name = `${path.parse(frame).name}.vs.${path.parse(reference).name}`;
+  const sideBySide = path.resolve(out, `${name}.side.png`);
+  const difference = path.resolve(out, `${name}.diff.png`);
+  run("ffmpeg", [...inputs, "-filter_complex", `${pair};[f][r]hstack`, "-frames:v", "1", "-y", sideBySide]);
+  run("ffmpeg", [...inputs, "-filter_complex", `${pair};[f][r]blend=all_mode=difference`, "-frames:v", "1", "-y", difference]);
+  const measured = String(run("ffmpeg", [
+    "-hide_banner", "-i", frame, "-i", reference, "-filter_complex",
+    `[1:v]scale=${width}:${height}:flags=bicubic,format=rgb24,split[r1][r2];[0:v]format=rgb24,split[f1][f2];[f1][r1]ssim;[f2][r2]psnr`,
+    "-f", "null", "-",
+  ]).stderr);
+  const ssim = Number(/SSIM .*All:([\d.]+)/.exec(measured)[1]);
+  const psnr = /PSNR .*average:([\d.]+|inf)/.exec(measured)[1];
+  // A pixel changed when any of its channels differs by more than 16 of 255.
+  const rgb = run("ffmpeg", ["-v", "error", "-i", difference, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]).stdout;
+  const pixels = rgb.length / 3;
+  let changed = 0;
+  for (let index = 0; index < rgb.length; index += 3) {
+    if (rgb[index] > 16 || rgb[index + 1] > 16 || rgb[index + 2] > 16) changed += 1;
+  }
+  print({
+    frame: path.resolve(frame),
+    reference: path.resolve(reference),
+    width,
+    height,
+    ssim,
+    psnr: psnr === "inf" ? null : Number(psnr),
+    changedPixels: Number((changed / pixels).toFixed(6)),
+    sideBySide,
+    difference,
+  });
+}
+
+/**
+ * The export runner's exit codes, in this command's terms: 0, 1 and 2 as
+ * every subcommand; an expired link is 4, a link that no longer works; every
+ * other code is 10 more than the runner's own, clear of 3 to 6.
+ */
+const exportExit = (code, expired) => (code <= 2 ? code : code === expired ? 4 : 10 + code);
+
+/** `export`: the plugin's export runner (`scripts/export-film.mjs`), its output through `redact`. */
+async function exportLink(link, options) {
+  if (link === undefined || options.out === undefined) throw new Failure(USAGE, 1);
+  linkOf(link, "The export link");
+  fileOf(options.out, "--out takes the new file to save the film into.");
+  const timeout = options.timeout === undefined ? 1800 : Number(options.timeout);
+  if (!Number.isFinite(timeout) || timeout <= 0) throw new Failure("--timeout takes a positive number of seconds.", 1);
+  const runner = await import(pathToFileURL(path.join(__dirname, "..", "scripts", "export-film.mjs")).href);
+  try {
+    const receipt = await runner.exportFilm({
+      link,
+      out: options.out,
+      browser: options.browser,
+      headed: options.headed === true,
+      play: options.play === true,
+      timeoutSeconds: timeout,
+      log: (line) => say(process.stderr, `[motionade export] ${line}`),
+    });
+    print(receipt);
+    process.exitCode = exportExit(runner.receiptExit(receipt), runner.EXIT.expired);
+  } catch (error) {
+    const known = error instanceof runner.ExportFailure;
+    if (!known) say(process.stderr, String(error?.stack ?? error));
+    const detail = known && error.detail !== undefined ? { ...error.detail } : {};
+    // The runner names the link to open by hand; printed, its ticket is masked, so say which link.
+    if (detail.fallback !== undefined) detail.fallback = "Or open the export link you passed in Chrome or Edge on this machine: the page renders the film there and downloads the MP4.";
+    print({
+      ok: false,
+      status: "failed",
+      error: known
+        ? { code: error.code, message: error.message, ...detail }
+        : { code: "export_failed", message: String(error?.message ?? error).split("\n")[0] },
+    });
+    process.exitCode = known ? exportExit(error.exit, runner.EXIT.expired) : 2;
+  }
+}
+
+async function main() {
+  const [command, ...rest] = process.argv.slice(2);
+  const { positional, options } = parse(rest);
+  if (command === "send") return send(only(command, positional, 1)[0], options.to);
+  if (command === "fetch") return fetchLink(only(command, positional, 1)[0], options.out);
+  if (command === "compare") {
+    const [frame, reference] = only(command, positional, 2);
+    return compare(frame, reference, options.out);
+  }
+  if (command === "export") return exportLink(only(command, positional, 1)[0], options);
+  if (command === "help" || command === "--help" || command === undefined) {
+    say(process.stdout, USAGE);
+    return;
+  }
+  throw new Failure(USAGE, 1);
+}
+
+main().catch((error) => {
+  say(process.stderr, error.message);
+  process.exitCode = error instanceof Failure ? error.code : 2;
+});

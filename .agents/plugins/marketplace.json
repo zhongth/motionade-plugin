@@ -1,0 +1,20 @@
+{
+  "name": "motionade",
+  "interface": {
+    "displayName": "Motionade"
+  },
+  "plugins": [
+    {
+      "name": "motionade",
+      "source": {
+        "source": "local",
+        "path": "./plugins/motionade"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
