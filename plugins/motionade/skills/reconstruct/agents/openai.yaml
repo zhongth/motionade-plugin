@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reconstruct a reference video"
+  short_description: "Rebuild a rendered video as an editable project"
+policy:
+  allow_implicit_invocation: false

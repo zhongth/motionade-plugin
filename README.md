@@ -52,6 +52,21 @@ renders it in the background through Studio's own export, and the agent checks t
 sound. This needs the `playwright-core` package once, which the agent installs with one `npm`
 command (it downloads no browser), and `ffmpeg` for the checks on the file.
 
+### Reconstruct a video
+
+To rebuild a rendered video as an editable project, run the `reconstruct` command with the
+video's path and any notes, such as the part to rebuild:
+
+- Claude Code: `/motionade:reconstruct launch.mp4 only 0:10 to 0:20`
+- Codex: type `$`, choose `motionade:reconstruct`, then add the path and notes.
+
+The agent rebuilds the video from text, shapes and paths in named groups with keyframed motion,
+the way a motion designer would build it in After Effects, then tells you scene by scene how
+close it got and which groups and controls to adjust in Studio. It saves an MP4 beside the
+video and gives you the Studio link. The agent needs `ffmpeg` to read the video. A whole film
+takes a long time: in our tests a 60-second film took one to three hours, so try a short part
+first.
+
 ## Update
 
 - Claude Code: `/plugin marketplace update motionade`. To stay current without asking, open

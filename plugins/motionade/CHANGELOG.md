@@ -3,6 +3,17 @@
 The `motionade` plugin for Claude Code and Codex. Versions follow Semantic Versioning;
 the plugin is versioned separately from Motionade's Studio.
 
+## 0.1.1 — 2026-10-14
+
+Made for Studio 0.1.0. Adds the plugin's first command, `reconstruct`: you give it a rendered
+video and any notes, and the agent rebuilds the video as an editable Motionade project, as close
+to it as it can, from text, shapes and paths in named groups with keyframed motion, not from
+frames of the video. It follows the skill's reference reconstruction route, reports honestly,
+scene by scene, how close it got and which groups and controls to adjust in Studio, and delivers
+an MP4 beside the reference with the Studio link. How the work is split and run is left to your
+host. In Claude Code run `/motionade:reconstruct <video path> [notes]`; in Codex type `$`,
+choose `motionade:reconstruct` and add the path. The agent never starts it on its own.
+
 ## 0.1.0 — 2026-10-12
 
 The alpha release, the first that testers install from the public repository. The founder
