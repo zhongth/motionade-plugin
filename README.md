@@ -67,6 +67,22 @@ video and gives you the Studio link. The agent needs `ffmpeg` to read the video.
 takes a long time: in our tests a 60-second film took one to three hours, so try a short part
 first.
 
+### Remake a video for your brand
+
+To make your own film in the structure of a video you like, run the `remake` command with the
+video's path and what your film is for, such as your product's site:
+
+- Claude Code: `/motionade:remake launch.mp4 for our app, site example.com`
+- Codex: type `$`, choose `motionade:remake`, then add the path and notes.
+
+The agent keeps the video's cuts, timing, rhythm and soundtrack, and tells the story with your
+brand and your product. Run it in your product's repository and it learns your real features,
+screens and words from the code; otherwise it reads your site, and it asks you when it needs
+more. It asks where the film's pictures should come from, then shows you a brand kit and a
+storyboard and waits for your word before it builds. It delivers an editable project, tells you
+scene by scene where it follows the video and where it departs, saves an MP4 and gives you the
+Studio link. Like a reconstruction, it needs `ffmpeg` and takes hours for a whole film.
+
 ## Update
 
 - Claude Code: `/plugin marketplace update motionade`. To stay current without asking, open

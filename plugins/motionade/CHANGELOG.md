@@ -3,6 +3,26 @@
 The `motionade` plugin for Claude Code and Codex. Versions follow Semantic Versioning;
 the plugin is versioned separately from Motionade's Studio.
 
+## 0.1.2 — 2026-10-16
+
+Made for Studio 0.1.0. Adds the `remake` command: you give it a reference video and what your
+film is for, and the agent makes your own film in the reference's structure. It keeps the
+reference's cuts, timing, beats, rhythm and soundtrack, and tells the story with your brand and
+your product: it maps each element of the reference to the one that plays its role in your film,
+and leaves none of the reference's brand, copy, logos or pictures on screen. It learns your
+product from the repository it runs in, or from your site and a search beyond it, claims nothing
+your product does not do, and asks when the subject or the brand is unclear. It asks where the
+pictures should come from, then shows you a brand kit and a storyboard with its story and waits
+for your word before it builds. It reports scene by scene where the film follows the reference and
+where it departs, and delivers an MP4 with the Studio link. In Claude Code run
+`/motionade:remake <video path> [your product, site or notes]`; in Codex type `$`, choose
+`motionade:remake` and add the path. The agent never starts it on its own.
+
+The skill gains the route the command follows, `references/remake.md`: read the reference as a
+skeleton, learn the brand and product, map roles rather than pixels, show the brand kit and the
+storyboard, then build and review as a reconstruction does, judged against the storyboard and
+the reference's structure rather than its pixels. `SKILL.md` and `reconstruction.md` point to it.
+
 ## 0.1.1 — 2026-10-14
 
 Made for Studio 0.1.0. Adds the plugin's first command, `reconstruct`: you give it a rendered

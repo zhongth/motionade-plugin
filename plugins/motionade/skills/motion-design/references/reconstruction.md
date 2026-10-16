@@ -1,6 +1,6 @@
 # Reference reconstruction
 
-Use when the user supplies a rendered film or passage to rebuild natively. The reference is the constraint: its composition, copy, scale, event order, motion character, and timing, including its pauses and cuts. Retime, restyle, or improve only when the user asks; that is adaptation. Scale the procedure to the source. A short passage needs a cut check, an event model, and one comparison loop; a whole film can add shared components, parallel authors, and assembly.
+Use when the user supplies a rendered film or passage to rebuild natively. The reference is the constraint: its composition, copy, scale, event order, motion character, and timing, including its pauses and cuts. Retime, restyle, or improve only when the user asks; that is adaptation. A film in the person's own brand on the reference's structure is a [remake](remake.md). Scale the procedure to the source. A short passage needs a cut check, an event model, and one comparison loop; a whole film can add shared components, parallel authors, and assembly.
 
 ## Fix the clocks and the cut map first
 

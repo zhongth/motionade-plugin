@@ -26,6 +26,10 @@ Read [Motion composition](references/motion-composition.md), then [Choreography]
 
 Read [Reference reconstruction](references/reconstruction.md) first. Fix the source's clocks and cut map and write its event model; then find each mechanism you observe in `needs` and prototype the hardest one before the full build. The reference fixes composition, copy, timing and motion character; change them only when the user asks.
 
+### Remake a reference
+
+Read [Remake a reference](references/remake.md) first. Read the reference as a skeleton (its clocks, cut map and what each Scene does), learn the person's brand and product, and map each element to the one that plays its role in their film. Show the brand kit and the storyboard before the full build. The reference fixes structure, timing and motion character; the person's brand and product supply everything on screen.
+
 ### Revise an existing film
 
 Find the project with `listProjects` unless the user gave its id, and read it as it is: `getProject` (with `sceneId` for one Scene) and `getSceneAuthoringContext`, which serves the fingerprints that precise edits quote back. The `needs` group "Changing what exists" lists the local edits: retime an Action, edit keys by id, rebase a track, reorder, rename. Keep to the scope asked, and prefer these edits to rebuilding, which loses identities and the person's adjustments. A stage lists in `overwroteUserEdits` any manual edit it would overwrite; resolve each one you were not asked to change before accepting.
@@ -71,6 +75,7 @@ Scale this reasoning to the task. A whole film needs a compact design model; a l
 - For a new film or changes to object relationships, read [Choreography](references/choreography.md): ownership, shared travel, cause/response, attention, and spatial handoffs.
 - For a new film, timing change, or readability/rhythm repair, read [Temporal design](references/temporal-design.md): event placement, property phases, reading windows, and film rhythm. Use the same project decisions as choreography.
 - For a reference reconstruction, read [Reference reconstruction](references/reconstruction.md): clocks and cut map, the observed event model, recurring components, the comparison loop, joins, the stopping rule, and separate reports.
+- For a remake, the person's own film in a reference's structure, read [Remake a reference](references/remake.md): the reference as a skeleton, learning the brand and product, mapping roles rather than pixels, the brand kit and storyboard shown before the build, and the review and report a remake needs.
 - For text with phased properties, layered demonstrations, or movement carried through a cut, read [Construction mechanisms](references/construction-mechanisms.md). These teaching cases show conditional choices and failure modes; adapt their relationships to the current content.
 - When a film is split among several agents, read [Roles](references/roles.md). Where your host lists the plugin's agents, one per hat, use them; otherwise pass the shared rules and that hat's part as each agent's brief.
 

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Remake a reference video"
+  short_description: "Your brand film in a reference video's structure"
+policy:
+  allow_implicit_invocation: false

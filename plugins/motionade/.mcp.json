@@ -4,11 +4,11 @@
       "type": "http",
       "url": "https://studio.motionade.app/api/mcp",
       "headers": {
-        "X-Motionade-Plugin-Version": "0.1.1",
+        "X-Motionade-Plugin-Version": "0.1.2",
         "X-Motionade-Agent-Host": "Claude Code"
       },
       "http_headers": {
-        "X-Motionade-Plugin-Version": "0.1.1",
+        "X-Motionade-Plugin-Version": "0.1.2",
         "X-Motionade-Agent-Host": "Codex"
       }
     }
